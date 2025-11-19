@@ -1109,7 +1109,7 @@ extension ViewController {
             }
         }
 
-        if event.modifierFlags.contains(.command), event.keyCode == kVK_ANSI_1, !UserDefaultsManagement.presentation {
+        if event.modifierFlags.contains(.command), event.modifierFlags.contains(.shift), event.keyCode == kVK_ANSI_1, !UserDefaultsManagement.presentation {
             toggleSidebarPanel(self)
             return false
         }
@@ -1284,7 +1284,7 @@ extension ViewController {
             }
         }
 
-        if event.modifierFlags.contains(.command), event.keyCode == kVK_ANSI_1, !UserDefaultsManagement.presentation {
+        if event.modifierFlags.contains(.command), event.modifierFlags.contains(.shift), event.keyCode == kVK_ANSI_1, !UserDefaultsManagement.presentation {
             toggleSidebarPanel("")
             return false
         }

@@ -216,16 +216,19 @@ CA
                                             </menu>
                                         </menuItem>
                                         <menuItem title="Hide/Show Sidebar" keyEquivalent="1" id="DCh-5P-PZe">
+                                            <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
                                             <connections>
                                                 <action selector="toggleSidebarPanel:" target="Ady-hI-5gd" id="fCd-4G-Daa"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Hide/Show NoteList" keyEquivalent="2" id="WHt-T4-l9c">
+                                            <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
                                             <connections>
                                                 <action selector="toggleNoteList:" target="Ady-hI-5gd" id="G22-P2-hks"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Toggle Preview" keyEquivalent="3" id="PdU-Em-Ugm">
+                                        <menuItem title="Toggle Preview" keyEquivalent="p" id="PdU-Em-Ugm">
+                                            <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
                                             <connections>
                                                 <action selector="togglePreview:" target="N0L-g4-qwj" id="2w1-01-aD6"/>
                                             </connections>
