@@ -5,7 +5,7 @@ import TelemetryDeck
 import WebKit
 
 extension KeyboardShortcuts.Name {
-    static let activateWindow = Self("activateWindow", default: .init(.m, modifiers: [.command, .option]))
+    static let activateWindow = Self("activateWindow")
 }
 
 @MainActor

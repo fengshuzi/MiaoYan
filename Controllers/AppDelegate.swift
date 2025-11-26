@@ -131,9 +131,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 "EditorLineBreak": UserDefaultsManagement.editorLineBreak,
             ])
 
-        if KeyboardShortcuts.getShortcut(for: .activateWindow) == nil {
-            KeyboardShortcuts.setShortcut(.init(.m, modifiers: [.command, .option]), for: .activateWindow)
-        }
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
