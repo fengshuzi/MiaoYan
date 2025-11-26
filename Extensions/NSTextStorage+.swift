@@ -39,6 +39,11 @@ extension NSTextStorage {
         paragraphStyle.maximumLineHeight = lineHeight
         paragraphStyle.minimumLineHeight = lineHeight
 
+        if let font = UserDefaultsManagement.noteFont {
+            let fourSpacesWidth = ("    " as NSString).size(withAttributes: [.font: font]).width
+            paragraphStyle.defaultTabInterval = fourSpacesWidth
+        }
+
         return paragraphStyle
     }
 

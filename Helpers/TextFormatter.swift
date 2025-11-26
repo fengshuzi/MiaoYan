@@ -83,13 +83,13 @@ public class TextFormatter {
     public func tab() {
         guard let vc = ViewController.shared() else { return }
         guard let pRange = getParagraphRange() else { return }
-        var padding = "  "
+        var padding = "\t"
 
         let nsContent = storage.mutableString as NSString
         let beforeLineRange = getLineRangeBefore(str: nsContent, lineRange: pRange)
         if beforeLineRange != nil {
             let beforeText = storage.attributedSubstring(from: beforeLineRange!).string
-            if beforeText.isNumberList() { padding = "   " }
+            if beforeText.isNumberList() { padding = "\t" }
         }
         guard range.length > 0 else {
             var text = storage.attributedSubstring(from: pRange).string
