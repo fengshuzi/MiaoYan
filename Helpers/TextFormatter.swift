@@ -336,15 +336,6 @@ public class TextFormatter {
             return
         }
 
-        if currentParagraph.string.starts(with: "  "),
-            let prefix = currentParagraph.string.getPrefixMatchSequentially(char: " ")
-        {
-            if selectedRange.location != currentParagraphRange.location { newLine += prefix }
-            let string = TextFormatter.getAttributedCode(string: newLine)
-            insertText(string)
-            return
-        }
-
         textView.insertNewline(nil)
     }
 

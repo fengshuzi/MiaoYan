@@ -409,10 +409,23 @@ extension ViewController {
                         newContent = newContent.replacingOccurrences(of: originalTag, with: updatedTag)
                     }
                 } else {
-                    newContent = restoredContent
+                    var tempContent = restoredContent
                     if content.last != "\n" && restoredContent.last == "\n" {
-                        newContent = restoredContent.removeLastNewLine()
+                        tempContent = restoredContent.removeLastNewLine()
                     }
+                    let lines = tempContent.split(separator: "\n", omittingEmptySubsequences: false)
+                    var normalizedLines: [String] = []
+                    normalizedLines.reserveCapacity(lines.count)
+                    for line in lines {
+                        var s = String(line)
+                        var count = 0
+                        while s.hasPrefix("  ") {
+                            s.removeFirst(2)
+                            count += 1
+                        }
+                        normalizedLines.append(String(repeating: "\t", count: count) + s)
+                    }
+                    newContent = normalizedLines.joined(separator: "\n")
                 }
                 // Sync note.content with the current editor so state remains consistent
                 if let currentStorage = editArea.textStorage {
