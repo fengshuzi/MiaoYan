@@ -551,24 +551,21 @@ public enum UserDefaultsManagement {
             }
         }
     }
+    // PPT功能已禁用 - 保留属性以保持兼容性
     static var presentation: Bool {
         get {
-            return EditorStateManager.shared.isPresentationMode
+            return false  // 始终返回 false，禁用 presentation 功能
         }
         set {
-            if newValue && !EditorStateManager.shared.isPPTMode {
-                EditorStateManager.shared.setMode(.presentation)
-            } else if !newValue && EditorStateManager.shared.currentMode == .presentation {
-                EditorStateManager.shared.setMode(.normal)
-            }
+            // 不执行任何操作，忽略设置
         }
     }
     static var magicPPT: Bool {
         get {
-            return EditorStateManager.shared.isPPTMode
+            return false  // 始终返回 false，禁用 PPT 功能
         }
         set {
-            EditorStateManager.shared.setMode(newValue ? .ppt : .normal)
+            // 不执行任何操作，忽略设置
         }
     }
     // Convenience properties

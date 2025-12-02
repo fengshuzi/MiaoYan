@@ -147,228 +147,7 @@ extension ViewController {
         }
     }
 
-    // MARK: - Presentation Mode
 
-    private func savePresentationLayout() {
-        let currentSidebarWidth = sidebarWidth
-        let currentNotelistWidth = notelistWidth
-
-        if currentSidebarWidth > 86 {
-            UserDefaultsManagement.realSidebarSize = Int(currentSidebarWidth)
-        }
-        if currentNotelistWidth > 0 {
-            UserDefaultsManagement.sidebarSize = Int(currentNotelistWidth)
-        }
-        if let clipView = notesTableView.superview as? NSClipView {
-            savedPresentationScrollPosition = clipView.bounds.origin
-        }
-    }
-
-    private func restorePresentationLayout() {
-        formatButton.isHidden = false
-        previewButton.isHidden = false
-
-        if sidebarWidth == 0 { showSidebar("") }
-        if notelistWidth == 0 { showNoteList("") }
-        checkTitlebarTopConstraint()
-
-        if let savedPosition = savedPresentationScrollPosition,
-            let clipView = notesTableView.superview as? NSClipView
-        {
-            clipView.setBoundsOrigin(savedPosition)
-            savedPresentationScrollPosition = nil
-        }
-    }
-
-    func enablePresentation() {
-        UserDefaultsManagement.presentation = true
-        savePresentationLayout()
-        hideNoteList("")
-        formatButton.isHidden = true
-        previewButton.isHidden = true
-        if editArea.markdownView != nil {
-            showWebView()
-        }
-        refillEditArea(previewOnly: true, force: true)
-        presentationButton.state = .on
-        // Disable editor's find bar to prevent Cmd+F from being intercepted by NSTextView
-        editArea.usesFindBar = false
-        // Hide editor scrollbar to prevent overlap with preview scrollbar
-        editAreaScroll.hasVerticalScroller = false
-        editAreaScroll.hasHorizontalScroller = false
-        if !UserDefaultsManagement.fullScreen {
-            view.window?.toggleFullScreen(nil)
-        }
-        if !UserDefaultsManagement.isOnExportPPT {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                self.toast(message: I18n.str("🙊 Press ESC key to exit~"))
-            }
-        }
-    }
-
-    func disablePresentation() {
-        presentationButton.state = .off
-        if UserDefaultsManagement.fullScreen {
-            UserDefaultsManagement.fullScreen = false
-            view.window?.toggleFullScreen(nil)
-        }
-        // Restore UI elements after fullscreen transition completes
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            self.restorePresentationLayout()
-            self.disablePreview()
-            UserDefaultsManagement.presentation = false
-            self.updateButtonStates()
-        }
-    }
-
-    // MARK: - Helper Methods
-    private func updateButtonStates() {
-        DispatchQueue.main.async {
-            self.previewButton.state = UserDefaultsManagement.preview ? .on : .off
-            self.presentationButton.state = UserDefaultsManagement.presentation ? .on : .off
-        }
-    }
-
-    func togglePresentation() {
-        saveTitleSafely()
-        // Handle both presentation and PPT modes
-        if UserDefaultsManagement.presentation || UserDefaultsManagement.magicPPT {
-            if UserDefaultsManagement.magicPPT {
-                disableMiaoYanPPT()
-            } else {
-                disablePresentation()
-            }
-        } else {
-            enablePresentation()
-            TelemetryDeck.signal("Editor.Presentation")
-        }
-    }
-    // MARK: - PPT Mode
-
-    func isMiaoYanPPT(needToast: Bool = true) -> Bool {
-        guard let note = notesTableView.getSelectedNote() else {
-            return false
-        }
-        let content = note.content.string
-        if content.contains("---") {
-            return true
-        }
-        if needToast {
-            toast(message: I18n.str("😶‍🌫 No delimiter --- identification, Cannot use MiaoYan PPT~"))
-        }
-        return false
-    }
-
-    func toggleMagicPPT() {
-        saveTitleSafely()
-        if UserDefaultsManagement.magicPPT {
-            disableMiaoYanPPT()
-        } else {
-            if !isMiaoYanPPT() {
-                return
-            }
-            enableMiaoYanPPT()
-        }
-    }
-
-    func enableMiaoYanPPT() {
-        guard let vc = ViewController.shared() else {
-            return
-        }
-        UserDefaultsManagement.magicPPT = true
-        savePresentationLayout()
-        hideNoteList("")
-        formatButton.isHidden = true
-        previewButton.isHidden = true
-        DispatchQueue.main.async {
-            vc.previewButton.state = .on
-            vc.presentationButton.state = .on
-        }
-        if !UserDefaultsManagement.fullScreen {
-            view.window?.toggleFullScreen(nil)
-        }
-        if editArea.markdownView != nil {
-            showWebView()
-        }
-        refillEditArea()
-        // Disable editor's find bar to prevent Cmd+F from being intercepted by NSTextView
-        editArea.usesFindBar = false
-        // Hide editor scrollbar to prevent overlap with preview scrollbar
-        editAreaScroll.hasVerticalScroller = false
-        editAreaScroll.hasHorizontalScroller = false
-        DispatchQueue.main.async {
-            vc.titiebarHeight.constant = 0.0
-            vc.titleLabel.isHidden = true
-            vc.titleBarView.isHidden = true
-            vc.handlePPTAutoTransition()
-        }
-        if !UserDefaultsManagement.isOnExportPPT {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                vc.toast(message: I18n.str("🙊 Press ESC key to exit~"))
-            }
-        }
-        TelemetryDeck.signal("Editor.PPT")
-    }
-
-    func handlePPTAutoTransition() {
-        guard let vc = ViewController.shared() else { return }
-        // Get cursor position and auto-navigate
-        let range = editArea.selectedRange
-        // If selectedIndex > editArea.string.count(), use string.count() value
-        // If final calculation is negative, use 0
-        let selectedIndex = max(min(range.location, editArea.string.count) - 1, 0)
-        let beforeString = editArea.string[..<selectedIndex]
-        let hrCount = beforeString.components(separatedBy: "---").count
-        if UserDefaultsManagement.previewLocation == "Editing", hrCount > 1 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                // Auto-navigation in PPT mode
-                vc.editArea.markdownView?.slideTo(index: hrCount - 1)
-            }
-        }
-        // Compatible with keyboard shortcut passthrough
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            NSApp.mainWindow?.makeFirstResponder(vc.editArea.markdownView)
-        }
-    }
-
-    func disableMiaoYanPPT() {
-        // Clear magicPPT flag FIRST to allow disablePreview to work properly
-        UserDefaultsManagement.magicPPT = false
-
-        // Update button states
-        DispatchQueue.main.async {
-            self.previewButton.state = .off
-            self.presentationButton.state = .off
-        }
-        // Restore title components that were hidden in PPT mode
-        DispatchQueue.main.async {
-            self.titleLabel.isHidden = false
-            self.titleBarView.isHidden = false
-            self.titiebarHeight.constant = 40.0
-        }
-        // Exit fullscreen if in fullscreen
-        if UserDefaultsManagement.fullScreen {
-            UserDefaultsManagement.fullScreen = false
-            view.window?.toggleFullScreen(nil)
-        }
-        // Restore UI elements after fullscreen transition completes
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            self.restorePresentationLayout()
-            self.disablePreview()
-            self.updateButtonStates()
-        }
-
-        // Hide webview and return to text editor
-        if editArea.markdownView != nil {
-            hideWebView()
-        }
-        // Restore editor content and focus
-        refillEditArea()
-        DispatchQueue.main.async {
-            self.titleLabel.isEditable = true
-            self.focusEditArea()
-        }
-    }
 
     // MARK: - Text Formatting
     func formatText() {
@@ -750,5 +529,36 @@ extension ViewController {
     private enum SaveResult {
         case success
         case exists
+    }
+    
+    // MARK: - PPT功能占位方法（已禁用，保留以保持兼容性）
+    
+    func togglePresentation() {
+        // PPT功能已禁用，不执行任何操作
+    }
+    
+    func toggleMagicPPT() {
+        // PPT功能已禁用，不执行任何操作
+    }
+    
+    func enablePresentation() {
+        // PPT功能已禁用，不执行任何操作
+    }
+    
+    func disablePresentation() {
+        // PPT功能已禁用，不执行任何操作
+    }
+    
+    func enableMiaoYanPPT() {
+        // PPT功能已禁用，不执行任何操作
+    }
+    
+    func disableMiaoYanPPT() {
+        // PPT功能已禁用，不执行任何操作
+    }
+    
+    func isMiaoYanPPT(needToast: Bool = true) -> Bool {
+        // PPT功能已禁用，始终返回 false
+        return false
     }
 }
