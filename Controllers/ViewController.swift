@@ -105,18 +105,7 @@ class ViewController:
         }
     }
 
-    @IBOutlet var formatButton: NSButton!
-    @IBOutlet var previewButton: NSButton! {
-        didSet {
-            previewButton.state = UserDefaultsManagement.preview ? .on : .off
-        }
-    }
-
-    @IBOutlet var presentationButton: NSButton! {
-        didSet {
-            presentationButton.state = UserDefaultsManagement.presentation ? .on : .off
-        }
-    }
+    // 右上角按钮已移除，只通过快捷键使用
 
     @IBOutlet var descendingCheckItem: NSMenuItem! {
         didSet {

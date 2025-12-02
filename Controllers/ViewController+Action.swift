@@ -616,9 +616,7 @@ extension ViewController {
         }
 
         UserDefaultsManagement.preview = false
-        DispatchQueue.main.async { [weak self] in
-            self?.previewButton.state = UserDefaultsManagement.preview ? .on : .off
-        }
+        // 按钮已移除，不需要更新状态
 
         editArea.markdownView?.removeFromSuperview()
         editArea.markdownView = nil

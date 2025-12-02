@@ -322,10 +322,7 @@ extension ViewController {
 
     // MARK: - Editor Content Management
     func refillEditArea(cursor: Int? = nil, previewOnly: Bool = false, saveTyping: Bool = false, force: Bool = false) {
-        DispatchQueue.main.async { [weak self] in
-            self?.previewButton.state = UserDefaultsManagement.preview ? .on : .off
-            self?.presentationButton.state = UserDefaultsManagement.presentation ? .on : .off
-        }
+        // 按钮已移除，不需要更新状态
         // Allow content refill in these scenarios:
         // - Normal refill (not preview-only), or
         // - Preview-only refill when in any preview/presentation mode, or
