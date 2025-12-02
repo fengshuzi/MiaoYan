@@ -157,7 +157,7 @@ public enum UserDefaultsManagement {
             if let dl = UserDefaults.standard.object(forKey: Constants.ButtonShow) as? String {
                 return dl
             }
-            return "Always"
+            return "Hover"  // 默认为悬停显示，打造极简风格
         }
         set {
             UserDefaults.standard.set(newValue, forKey: Constants.ButtonShow)

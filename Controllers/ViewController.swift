@@ -82,11 +82,10 @@ class ViewController:
             layer.backgroundColor = .clear
             titleBarAdditionalView.wantsLayer = true
             titleBarAdditionalView.layer = layer
-            if UserDefaultsManagement.buttonShow == "Hover" {
-                titleBarAdditionalView.alphaValue = 0
-            } else {
-                titleBarAdditionalView.alphaValue = 1
-            }
+            
+            // 设置初始透明度
+            let initialAlpha: CGFloat = (UserDefaultsManagement.buttonShow == "Hover") ? 0 : 1
+            titleBarAdditionalView.alphaValue = initialAlpha
         }
     }
 
@@ -105,7 +104,10 @@ class ViewController:
         }
     }
 
-    // 右上角按钮已移除，只通过快捷键使用
+    // 右上角按钮 - 通过 titleBarAdditionalView 容器控制显示/隐藏
+    @IBOutlet weak var formatButton: NSButton?
+    @IBOutlet weak var previewButton: NSButton?
+    @IBOutlet weak var presentationButton: NSButton?
 
     @IBOutlet var descendingCheckItem: NSMenuItem! {
         didSet {
@@ -234,6 +236,9 @@ class ViewController:
         searchQueue.maxConcurrentOperationCount = 1
         notesTableView.loadingQueue.maxConcurrentOperationCount = 1
         notesTableView.loadingQueue.qualityOfService = QualityOfService.userInteractive
+        
+        // 应用按钮显示偏好设置
+        applyButtonVisibilityPreference()
     }
 
     // Handle webview performance impact from long-term inactivity
