@@ -49,9 +49,23 @@ extension AppDelegate {
     @MainActor
     func openNotes(urls: [URL]) {
         guard let vc = ViewController.shared() else { return }
-        UserDefaultsManagement.singleModePath = urls[0].path
+        let fileUrl = urls[0]
+        
+        // If already in single mode with the same file, do nothing
+        if UserDefaultsManagement.isSingleMode && 
+           UserDefaultsManagement.singleModePath == fileUrl.path {
+            return
+        }
+        
+        // Set single mode
+        UserDefaultsManagement.singleModePath = fileUrl.path
         UserDefaultsManagement.isSingleMode = true
-        vc.restart()
+        
+        // Hide sidebars immediately
+        vc.hideNoteList("")
+        
+        // Load the file directly without restarting the app
+        vc.loadFileDirectly(url: fileUrl)
     }
 
     @MainActor

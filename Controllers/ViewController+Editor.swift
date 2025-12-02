@@ -382,7 +382,8 @@ extension ViewController {
         guard !isFormatting else {
             return
         }
-        if let note = notesTableView.getSelectedNote() {
+        // Use EditTextView.note directly to support single file mode
+        if let note = EditTextView.note {
             isFormatting = true
             saveTitleSafely()
             let formatter = PrettierFormatter(plugins: [MarkdownPlugin()], parser: MarkdownParser())
@@ -514,7 +515,8 @@ extension ViewController {
         if let responder = firstResponder {
             resp = responder
         }
-        if notesTableView.selectedRow > -1 {
+        // Support both normal mode (with table selection) and single file mode
+        if notesTableView.selectedRow > -1 || UserDefaultsManagement.isSingleMode {
             DispatchQueue.main.async {
                 self.editArea.isEditable = true
                 self.emptyEditAreaView.isHidden = true
@@ -559,18 +561,26 @@ extension ViewController {
             } else {
                 location = self.editArea.selectedRanges[0].rangeValue.location
             }
+            
+            // Try to get note from table selection first, fallback to EditTextView.note for single file mode
+            var note: Note?
             let selected = self.notesTableView.selectedRow
             if selected > -1, self.notesTableView.noteList.indices.contains(selected) {
-                if let note = self.notesTableView.getSelectedNote() {
-                    let options = FillOptions(
-                        highlight: true,
-                        saveTyping: saveTyping,
-                        force: force,
-                        needScrollToCursor: true
-                    )
-                    self.editArea.fill(note: note, options: options)
-                    self.editArea.setSelectedRange(NSRange(location: location, length: 0))
-                }
+                note = self.notesTableView.getSelectedNote()
+            } else {
+                // In single file mode, use the currently loaded note
+                note = EditTextView.note
+            }
+            
+            if let note = note {
+                let options = FillOptions(
+                    highlight: true,
+                    saveTyping: saveTyping,
+                    force: force,
+                    needScrollToCursor: true
+                )
+                self.editArea.fill(note: note, options: options)
+                self.editArea.setSelectedRange(NSRange(location: location, length: 0))
             }
         }
     }

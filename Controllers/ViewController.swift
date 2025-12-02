@@ -382,6 +382,13 @@ class ViewController:
     }
 
     private func configureLayout() {
+        // Pre-hide sidebars in single mode to avoid flash
+        if UserDefaultsManagement.isSingleMode {
+            sidebarSplitView.setPosition(0, ofDividerAt: 0)
+            splitView.setPosition(0, ofDividerAt: 0)
+            splitView.shouldHideDivider = true
+        }
+        
         emptyEditAreaView.isHidden = true
         titleLabel.isHidden = true
         updateTitle(newTitle: "")
@@ -436,30 +443,21 @@ class ViewController:
             lastSidebarItem = 0
         }
         updateTable {
-            // Set sidebar selection after table update to properly trigger selection change
-            if let items = self.storageOutlineView.sidebarItems, items.indices.contains(lastSidebarItem) {
-                // Use a small delay to ensure table is fully loaded before selection
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                    self.storageOutlineView.selectRowIndexes([lastSidebarItem], byExtendingSelection: false)
-                }
-            }
             if UserDefaultsManagement.isSingleMode {
+                // Single file mode: skip sidebar selection, load file directly
+                self.storageOutlineView.isLaunch = false
                 let singleModeUrl = URL(fileURLWithPath: UserDefaultsManagement.singleModePath)
-                self.hideSidebar("")
-                if !FileManager.default.directoryExists(atUrl: singleModeUrl), let lastNote = self.storage.getBy(url: singleModeUrl), let i = self.notesTableView.getIndex(lastNote) {
-                    DispatchQueue.main.async {
-                        self.notesTableView.selectRow(i)
-                        self.notesTableView.scrollRowToVisible(row: i, animated: false)
-                    }
-                } else if FileManager.default.directoryExists(atUrl: singleModeUrl) {
-                    DispatchQueue.main.async {
-                        if !self.notesTableView.noteList.isEmpty {
-                            self.notesTableView.selectRow(0)
-                            self.notesTableView.scrollRowToVisible(row: 0, animated: false)
-                        }
+                DispatchQueue.main.async {
+                    self.loadFileDirectly(url: singleModeUrl)
+                }
+            } else {
+                // Normal mode: set sidebar selection after table update
+                if let items = self.storageOutlineView.sidebarItems, items.indices.contains(lastSidebarItem) {
+                    // Use a small delay to ensure table is fully loaded before selection
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        self.storageOutlineView.selectRowIndexes([lastSidebarItem], byExtendingSelection: false)
                     }
                 }
-                self.storageOutlineView.isLaunch = false
             }
         }
     }
@@ -537,6 +535,38 @@ class ViewController:
         if let sidebarMenu = storageOutlineView.menu {
             sidebarMenu.applyMenuIcons()
         }
+    }
+
+    // MARK: - Direct File Loading (Decoupled from Sidebar)
+    
+    /// Load a file directly into the editor without relying on sidebar/notelist rendering
+    /// This is used in single file mode to avoid unnecessary UI updates
+    func loadFileDirectly(url: URL) {
+        // Get or create the note
+        guard let note = storage.getBy(url: url) else {
+            // If note doesn't exist, show empty editor
+            editArea.clear()
+            return
+        }
+        
+        // Load the note directly into the editor
+        let options = FillOptions(
+            highlight: false,
+            saveTyping: false,
+            force: true,
+            needScrollToCursor: false
+        )
+        editArea.fill(note: note, options: options)
+        
+        // Update the title
+        updateTitle(newTitle: note.getTitleWithoutLabel())
+        
+        // Make editor editable
+        editArea.isEditable = true
+        
+        // Set as the current note
+        EditTextView.note = note
+        UserDefaultsManagement.lastSelectedURL = note.url
     }
 
 }
