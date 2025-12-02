@@ -1324,7 +1324,5 @@ extension ViewController {
         popover.isShown
     }
 
-    func toastInSingleMode() {
-        toast(message: I18n.str("🙊 In single open mode, Exit with Command+Shift+W ~"))
-    }
+    func toastInSingleMode() {}
 }
