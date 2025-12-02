@@ -51,21 +51,41 @@ extension AppDelegate {
         guard let vc = ViewController.shared() else { return }
         let fileUrl = urls[0]
         
-        // If already in single mode with the same file, do nothing
+        // If already in single mode with the same file, just bring window to front
         if UserDefaultsManagement.isSingleMode && 
            UserDefaultsManagement.singleModePath == fileUrl.path {
+            NSApp.activate(ignoringOtherApps: true)
+            vc.view.window?.makeKeyAndOrderFront(nil)
             return
         }
         
-        // Set single mode
+        // Check if the file is in a different directory than current single mode file
+        let needsRestart: Bool
+        if UserDefaultsManagement.isSingleMode && !UserDefaultsManagement.singleModePath.isEmpty {
+            let currentDir = URL(fileURLWithPath: UserDefaultsManagement.singleModePath).deletingLastPathComponent()
+            let newDir = fileUrl.deletingLastPathComponent()
+            needsRestart = (currentDir != newDir)
+        } else {
+            needsRestart = false
+        }
+        
+        // Set single mode with new file path
         UserDefaultsManagement.singleModePath = fileUrl.path
         UserDefaultsManagement.isSingleMode = true
         
-        // Hide sidebars immediately
-        vc.hideNoteList("")
-        
-        // Load the file directly without restarting the app
-        vc.loadFileDirectly(url: fileUrl)
+        if needsRestart {
+            // Different directory - restart app to ensure clean state
+            AppDelegate.relaunchApp()
+        } else {
+            // Same directory or first time - load directly
+            vc.sidebarSplitView.setPosition(0, ofDividerAt: 0)
+            vc.splitView.setPosition(0, ofDividerAt: 0)
+            vc.splitView.shouldHideDivider = true
+            vc.loadFileDirectly(url: fileUrl)
+            
+            NSApp.activate(ignoringOtherApps: true)
+            vc.view.window?.makeKeyAndOrderFront(nil)
+        }
     }
 
     @MainActor

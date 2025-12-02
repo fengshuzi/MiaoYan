@@ -413,11 +413,25 @@ class ViewController:
         storageOutlineView.selectionHighlightStyle = .none
         // Ensure proper display after data is set
         storageOutlineView.needsDisplay = true
-        sidebarSplitView.autosaveName = "SidebarSplitView"
-        splitView.autosaveName = "EditorSplitView"
+        
+        // Set autosave names (but will be overridden in single mode)
+        if !UserDefaultsManagement.isSingleMode {
+            sidebarSplitView.autosaveName = "SidebarSplitView"
+            splitView.autosaveName = "EditorSplitView"
+        }
+        
         // Assign an autosave name so the sidebar outline view keeps its expansion state
         storageOutlineView.autosaveExpandedItems = true
         storageOutlineView.autosaveName = "SidebarOutlineView"
+        
+        // Force hide sidebars again after autosave restoration in single mode
+        if UserDefaultsManagement.isSingleMode {
+            DispatchQueue.main.async {
+                self.sidebarSplitView.setPosition(0, ofDividerAt: 0)
+                self.splitView.setPosition(0, ofDividerAt: 0)
+                self.splitView.shouldHideDivider = true
+            }
+        }
         notesScrollView.scrollerStyle = .overlay
         sidebarScrollView.scrollerStyle = .overlay
         sidebarScrollView.horizontalScroller = .none
